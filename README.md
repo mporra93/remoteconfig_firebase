@@ -41,3 +41,10 @@ provider: ^5.0.0
         - Agregar archivo de configuracion de google en Android/app/ 
         - Agregar las lineas de codigo como indica  en build.gradle en /Android/build.gradle y en /Android/app/build.gradle
 
+# Agregar Adds de Google
+
+- Checkear los pasos en la documentacion oficial de [google_mobile_ads](https://pub.dev/packages/google_mobile_ads)
+    - Instalar packages documentacion [aqui](https://pub.dev/packages/google_mobile_ads/install)
+    - Agregar datos en Manifest de google 
+    - Agregar datos en info.plist de iOs !Usando XCode, documentacion [aqui](https://developers.google.com/admob/ios/quick-start#update%5C_your%5C_infoplist)
+

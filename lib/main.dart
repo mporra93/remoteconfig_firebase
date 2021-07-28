@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:remoteconfig_firebase/AfterAction.dart';
-
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'InterstDemo.dart';
 import 'services/provider.dart';
 
-void main() => runApp(AppState());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+
+  runApp(AppState());
+}
 
 class AppState extends StatelessWidget {
   @override
@@ -38,7 +43,82 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+//-------------------------------- CONFIG
+const String testDevice = 'YOUR_DEVICE_ID';
+const int maxFailedLoadAttempts = 3;
+//--------------------------------
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  static final AdRequest request = AdRequest(
+    keywords: <String>['foo', 'bar'],
+    contentUrl: 'http://foo.com/bar.html',
+    nonPersonalizedAds: true,
+  );
+
+  InterstitialAd? _interstitialAd;
+  int _numInterstitialLoadAttempts = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _createInterstitialAd();
+  }
+
+  void _createInterstitialAd() {
+    InterstitialAd.load(
+        adUnitId: InterstitialAd.testAdUnitId,
+        request: request,
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            // print('$ad loaded');
+            _interstitialAd = ad;
+            _numInterstitialLoadAttempts = 0;
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            print('InterstitialAd failed to load: $error.');
+            _numInterstitialLoadAttempts += 1;
+            _interstitialAd = null;
+            if (_numInterstitialLoadAttempts <= maxFailedLoadAttempts) {
+              _createInterstitialAd();
+            }
+          },
+        ));
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd == null) {
+      print('Warning: attempt to show interstitial before loaded.');
+      return;
+    }
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) =>
+          print('ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        // print('$ad onAdDismissedFullScreenContent.');
+        ad.dispose();
+        _createInterstitialAd();
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        print('$ad onAdFailedToShowFullScreenContent: $error');
+        ad.dispose();
+        _createInterstitialAd();
+      },
+    );
+    _interstitialAd!.show();
+    _interstitialAd = null;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _interstitialAd?.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final stateManage =
@@ -61,6 +141,7 @@ class HomePage extends StatelessWidget {
                 ),
                 body: Center(
                   child: ElevatedButton(
+                    // onPressed: () {  _showInterstitialAd();},
                     onPressed: () async {
                       try {
                         //---configuracion
@@ -80,9 +161,10 @@ class HomePage extends StatelessWidget {
                               remoteConfig.getString('interstDelay');
                           stateManage.intersticioSwitch();
                           stateManage.setDur(duration);
+                          _showInterstitialAd(); // llamo al interstitial
                           Navigator.pushNamedAndRemoveUntil(
                               context,
-                              'interstPage',
+                              'afterAPage',
                               (route) => false); //llamada a la publicidad
                           // Aca iria la funcion que llama a la accion que
                           //sique despues de la publicidad
@@ -101,19 +183,19 @@ class HomePage extends StatelessWidget {
                         //--------
                       } on PlatformException catch (exception) {
                         // Aca iria la funcion que llama a la accion que
-                          // le sigue a la publidicad en caso de que falle
-                          //en este caso yo puse que vaya al aferPage que seria
-                          //lo que sigue despues de la publicidad
-                          //que en este caso no se ejecuto
+                        // le sigue a la publidicad en caso de que falle
+                        //en este caso yo puse que vaya al aferPage que seria
+                        //lo que sigue despues de la publicidad
+                        //que en este caso no se ejecuto
                         Navigator.pushNamedAndRemoveUntil(
                             context, 'afterAPage', (route) => false);
                         print(exception);
                       } catch (exception) {
                         // Aca iria la funcion que llama a la accion que
-                          // le sigue a la publidicad en caso de que falle
-                          //en este caso yo puse que vaya al aferPage que seria
-                          //lo que sigue despues de la publicidad
-                          //que en este caso no se ejecuto
+                        // le sigue a la publidicad en caso de que falle
+                        //en este caso yo puse que vaya al aferPage que seria
+                        //lo que sigue despues de la publicidad
+                        //que en este caso no se ejecuto
                         Navigator.pushNamedAndRemoveUntil(
                             context, 'afterAPage', (route) => false);
                         print(exception);
