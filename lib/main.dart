@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Remote Config',
+      title: 'Remote Config and Adds',
       initialRoute: 'home',
       routes: {
         'home': (_) => HomePage(),
